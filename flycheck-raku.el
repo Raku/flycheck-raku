@@ -2,14 +2,14 @@
 
 ;; Copyright (C) 2015 Hinrik Örn Sigurðsson <hinrik.sig@gmail.com>
 ;; Copyright (C) 2020 Johnathon Weare <jrweare@gmail.com>
+;; Copyright (C) 2021 Siavash Askari Nasr
 
-;; Author: Hinrik Örn Sigurðsson <hinrik.sig@gmail.com>, Johnathon Weare <jrweare@gmail.com>
+;; Author: Hinrik Örn Sigurðsson <hinrik.sig@gmail.com>, Johnathon Weare <jrweare@gmail.com>, Siavash Askari Nasr
 ;; original URL: https://github.com/hinrik/flycheck-perl6
-;; URL: https://github.com/widefox/flycheck-raku
-;; Package-Version: 20200423.1
+;; URL: https://github.com/Raku/flycheck-raku
 ;; Keywords: tools, convenience
-;; Version: 0.2-git
-;; Package-Requires: ((emacs "24.3") (flycheck "0.22"))
+;; Version: 0.3-git
+;; Package-Requires: ((emacs "24.3") (flycheck "0.22") (projectile "2.4.0"))
 
 ;; This file is not part of GNU Emacs.
 
@@ -36,12 +36,13 @@
 ;;; Code:
 
 (require 'flycheck)
+(require 'projectile)
 
 (defgroup flycheck-raku nil
   "Raku support for Flycheck."
   :prefix "flycheck-raku-"
   :group 'flycheck
-  :link '(url-link :tag "Github" "https://github.com/widefox/flycheck-raku"))
+  :link '(url-link :tag "Github" "https://github.com/Raku/flycheck-raku"))
 
 (flycheck-def-option-var flycheck-raku-include-path nil raku
   "A list of include directories for Raku (change this from raku to perl6 if on an old install).
@@ -55,12 +56,29 @@ Relative paths are relative to the file being checked."
 (flycheck-define-checker raku
   "A Raku syntax checker."
   :command ("raku" "-c"
-            (option-list "-I" flycheck-raku-include-path) source)
+            (option-list "-I" flycheck-raku-include-path)
+            ;; Add project root lib to path
+            (eval (let ((project-root (projectile-project-root)))
+                    (if (stringp project-root)
+                        (list "-I" (concat (file-name-as-directory project-root) "lib")))))
+            source)
   :error-patterns
-  ((error (or (and line-start (message) (? "\r") "\nat " (file-name) ":" line (? "\r") line-end)
-              (and "compiling " (file-name) (? "\r") "\n" (message (minimal-match (1+ anything))) " at line " line)
-              ; "Module not found" message
-              (and "===SORRY!===" (? "\r") "\n" (message (minimal-match (1+ anything))) " at line " line))))
+  (
+   ;; Multi-line compiler errors
+   (error line-start (minimal-match (1+ anything)) " Error while compiling " (file-name) (? "\r") "\n"
+          (message (minimal-match (1+ anything (? "\r") "\n")))
+          (minimal-match (0+ anything))  "at " (file-name) ":" line)
+   ;; Undeclared routine errors
+   (error line-start (minimal-match (1+ anything)) " Error while compiling " (file-name) (? "\r") "\n"
+          (? whitespace) (message (minimal-match (1+ anything)) "at line " line (minimal-match (0+ anything)) (? "\r") "\n"))
+   ;; Other compiler errors
+   (error line-start (minimal-match (1+ anything)) (? "\r") "\n"
+          (message (minimal-match (1+ anything))) (? "\r") "\nat " (file-name) ":" line)
+   ;; Potential difficulties
+   (error line-start (minimal-match (1+ anything)) "difficulties:" (? "\r") "\n"
+          (0+ whitespace) (message (minimal-match (1+ anything))) (? "\r") "\n"
+          (0+ whitespace) "at " (file-name) ":" line)
+   )
   :modes raku-mode)
 
 (add-to-list 'flycheck-checkers 'raku)
