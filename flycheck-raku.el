@@ -62,23 +62,20 @@ Relative paths are relative to the file being checked."
                     (if (stringp project-root)
                         (list "-I" (concat (file-name-as-directory project-root) "lib")))))
             source)
-  :error-patterns
-  (
-   ;; Multi-line compiler errors
-   (error line-start (minimal-match (1+ anything)) " Error while compiling " (file-name) (? "\r") "\n"
-          (message (minimal-match (1+ anything (? "\r") "\n")))
-          (minimal-match (0+ anything))  "at " (file-name) ":" line)
-   ;; Undeclared routine errors
-   (error line-start (minimal-match (1+ anything)) " Error while compiling " (file-name) (? "\r") "\n"
-          (? whitespace) (message (minimal-match (1+ anything)) "at line " line (minimal-match (0+ anything)) (? "\r") "\n"))
-   ;; Other compiler errors
-   (error line-start (minimal-match (1+ anything)) (? "\r") "\n"
-          (message (minimal-match (1+ anything))) (? "\r") "\nat " (file-name) ":" line)
-   ;; Potential difficulties
-   (error line-start (minimal-match (1+ anything)) "difficulties:" (? "\r") "\n"
-          (0+ whitespace) (message (minimal-match (1+ anything))) (? "\r") "\n"
-          (0+ whitespace) "at " (file-name) ":" line)
-   )
+  :error-patterns (;; Multi-line compiler errors
+                   (error line-start (minimal-match (1+ anything)) " Error while compiling " (file-name) (? "\r") "\n"
+                          (message (minimal-match (1+ anything (? "\r") "\n")))
+                          (minimal-match (0+ anything))  "at " (file-name) ":" line)
+                   ;; Undeclared routine errors
+                   (error line-start (minimal-match (1+ anything)) " Error while compiling " (file-name) (? "\r") "\n"
+                          (? whitespace) (message (minimal-match (1+ anything)) "at line " line (minimal-match (0+ anything)) (? "\r") "\n"))
+                   ;; Other compiler errors
+                   (error line-start (minimal-match (1+ anything)) (? "\r") "\n"
+                          (message (minimal-match (1+ anything))) (? "\r") "\nat " (file-name) ":" line)
+                   ;; Potential difficulties
+                   (error line-start (minimal-match (1+ anything)) "difficulties:" (? "\r") "\n"
+                          (0+ whitespace) (message (minimal-match (1+ anything))) (? "\r") "\n"
+                          (0+ whitespace) "at " (file-name) ":" line))
   :modes raku-mode)
 
 (add-to-list 'flycheck-checkers 'raku)
