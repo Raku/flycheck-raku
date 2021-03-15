@@ -1,6 +1,11 @@
 flycheck-raku Changes
 ===================
 
+0.4 (2021-03-15)
+----------------
+
+- Use the built-in `project` library for adding project root lib to the include path (instead of using projectile)
+
 0.3 (2021-03-07)
 ----------------
 

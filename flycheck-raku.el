@@ -10,8 +10,8 @@
 ;; original URL: https://github.com/hinrik/flycheck-perl6
 ;; URL: https://github.com/Raku/flycheck-raku
 ;; Keywords: tools, convenience
-;; Version: 0.3
-;; Package-Requires: ((emacs "24.3") (flycheck "0.22") (projectile "2.4.0"))
+;; Version: 0.4
+;; Package-Requires: ((emacs "26.3") (flycheck "0.22"))
 
 ;; This file is not part of GNU Emacs.
 
@@ -38,7 +38,7 @@
 ;;; Code:
 
 (require 'flycheck)
-(require 'projectile)
+(require 'project)
 
 (defgroup flycheck-raku nil
   "Raku support for Flycheck."
@@ -60,9 +60,10 @@ Relative paths are relative to the file being checked."
   :command ("raku" "-c"
             (option-list "-I" flycheck-raku-include-path)
             ;; Add project root lib to path
-            (eval (let ((project-root (projectile-project-root)))
-                    (if (stringp project-root)
-                        (list "-I" (concat (file-name-as-directory project-root) "lib")))))
+            (eval (let ((current-project (project-current)))
+                    (if current-project
+                        (let ((project-root (car (project-roots current-project))))
+                          (list "-I"  (concat (file-name-as-directory project-root) "lib"))))))
             source)
   :error-patterns (;; Multi-line compiler errors
                    (error line-start (minimal-match (1+ anything)) " Error while compiling " (file-name) (? "\r") "\n"
