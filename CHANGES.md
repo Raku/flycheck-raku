@@ -1,6 +1,11 @@
 flycheck-raku Changes
 ===================
 
+0.5 (2021-03-16)
+----------------
+
+- Use absolute path for project root
+
 0.4 (2021-03-15)
 ----------------
 

@@ -10,7 +10,7 @@
 ;; original URL: https://github.com/hinrik/flycheck-perl6
 ;; URL: https://github.com/Raku/flycheck-raku
 ;; Keywords: tools, convenience
-;; Version: 0.4
+;; Version: 0.5
 ;; Package-Requires: ((emacs "26.3") (flycheck "0.22"))
 
 ;; This file is not part of GNU Emacs.
@@ -63,7 +63,7 @@ Relative paths are relative to the file being checked."
             (eval (let ((current-project (project-current)))
                     (if current-project
                         (let ((project-root (car (project-roots current-project))))
-                          (list "-I"  (concat (file-name-as-directory project-root) "lib"))))))
+                          (list "-I" (expand-file-name (concat project-root "lib")))))))
             source)
   :error-patterns (;; Multi-line compiler errors
                    (error line-start (minimal-match (1+ anything)) " Error while compiling " (file-name) (? "\r") "\n"
