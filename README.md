@@ -3,7 +3,7 @@
 
 Make [Flycheck][] syntax-check Raku code.
 
-![Emacs screenshot with flycheck-raku](https://github.com/widefox/flycheck-raku/raw/master/flycheck-raku-screenshot.png)
+![Emacs screenshot with flycheck-raku](flycheck-raku-screenshot.png)
 
 Installation
 ------------
