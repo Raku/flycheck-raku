@@ -10,7 +10,7 @@
 ;; original URL: https://github.com/hinrik/flycheck-perl6
 ;; URL: https://github.com/Raku/flycheck-raku
 ;; Keywords: tools, convenience
-;; Version: 0.5
+;; Version: 0.6
 ;; Package-Requires: ((emacs "26.3") (flycheck "0.22"))
 
 ;; This file is not part of GNU Emacs.
