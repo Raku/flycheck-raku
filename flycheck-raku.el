@@ -59,11 +59,11 @@ Relative paths are relative to the file being checked."
   "A Raku syntax checker."
   :command ("raku" "-c"
             (option-list "-I" flycheck-raku-include-path)
-            ;; Add project root lib to path
+            ;; Add project root to path
             (eval (let ((current-project (project-current)))
                     (if current-project
                         (let ((project-root (car (project-roots current-project))))
-                          (list "-I" (expand-file-name (concat project-root "lib")))))))
+                          (list "-I" (expand-file-name project-root))))))
             source)
   :error-patterns (;; Multi-line compiler errors
                    (error line-start (minimal-match (1+ anything)) " Error while compiling " (file-name) (? "\r") "\n"
