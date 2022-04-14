@@ -10,7 +10,7 @@
 ;; original URL: https://github.com/hinrik/flycheck-perl6
 ;; URL: https://github.com/Raku/flycheck-raku
 ;; Keywords: tools, convenience
-;; Version: 0.6
+;; Version: 0.7
 ;; Package-Requires: ((emacs "26.3") (flycheck "0.22"))
 
 ;; This file is not part of GNU Emacs.
@@ -47,7 +47,7 @@
   :link '(url-link :tag "Github" "https://github.com/Raku/flycheck-raku"))
 
 (flycheck-def-option-var flycheck-raku-include-path nil raku
-  "A list of include directories for Raku (change this from raku to perl6 if on an old install).
+  "A list of include directories for Raku.
 
 The value of this variable is a list of strings, where each
 string is a directory to add to the include path of Raku.
@@ -65,20 +65,50 @@ Relative paths are relative to the file being checked."
                         (let ((project-root (car (project-roots current-project))))
                           (list "-I" (expand-file-name project-root))))))
             source)
-  :error-patterns (;; Multi-line compiler errors
-                   (error line-start (minimal-match (1+ anything)) " Error while compiling " (file-name) (? "\r") "\n"
-                          (message (minimal-match (1+ anything (? "\r") "\n")))
-                          (minimal-match (0+ anything))  "at " (file-name) ":" line)
-                   ;; Undeclared routine errors
-                   (error line-start (minimal-match (1+ anything)) " Error while compiling " (file-name) (? "\r") "\n"
-                          (? whitespace) (message (minimal-match (1+ anything)) "at line " line (minimal-match (0+ anything)) (? "\r") "\n"))
-                   ;; Other compiler errors
-                   (error line-start (minimal-match (1+ anything)) (? "\r") "\n"
-                          (message (minimal-match (1+ anything))) (? "\r") "\nat " (file-name) ":" line)
-                   ;; Potential difficulties
-                   (error line-start (minimal-match (1+ anything)) "difficulties:" (? "\r") "\n"
-                          (0+ whitespace) (message (minimal-match (1+ anything))) (? "\r") "\n"
-                          (0+ whitespace) "at " (file-name) ":" line))
+  :error-parser flycheck-parse-with-patterns-without-color
+  :error-filter (lambda (errors)
+                  (flatten-list
+                   (mapcar
+                    (lambda (err)
+                      (let ((str (flycheck-error-message err)))
+                        (if (string-match "\\`\\(Undeclared \\(?:routine\\|name\\)\\)s?:" str)
+                            (let ((error-type (match-string 1 str)) errs)
+                              (while (string-match "\s*\\(.+?\\) at lines? \\([^\n]+\n\\)" str (match-end 0))
+                                (let ((msg (concat error-type " " (match-string 1 str)))
+                                      (rest-of-line (match-string 2 str))
+                                      (rest-start-pos 0)
+                                      line-numbers)
+                                  (save-match-data
+                                    (while (string-match "\\([[:digit:]]+\\)\\(?:, \\)?" rest-of-line rest-start-pos)
+                                      (setq rest-start-pos (match-end 0))
+                                      (push (string-to-number (match-string 1 rest-of-line))
+                                            line-numbers))
+                                    (string-match "\\([^\n]*\\)\n" rest-of-line (match-end 0))
+                                    (mapc
+                                     (lambda (line-number)
+                                       (push
+                                        (flycheck-error-new-at
+                                         line-number nil (flycheck-error-level err) (concat msg (match-string 1 rest-of-line)))
+                                        errs))
+                                     line-numbers))))
+                              errs)
+                          err)))
+                    errors)))
+  :error-patterns ((error (? string-start "Use of Nil in string context\n" (* whitespace))
+                          (* whitespace)
+                          (? "Syntax OK\n" (* whitespace))
+                          (? line-start "===SORRY!===" (? " Error while compiling " (file-name)) "\n")
+                          (? (+ nonl) "difficulties:\n" (* whitespace))
+
+                          (message
+                           (or (seq line-start "===SORRY!===" (? "Error while compiling ") (+? anything) "\n\n")
+                               (+? anything))
+
+                           (or (seq (* whitespace) "at " (file-name) ":" line "\n")
+                               (+ (seq (+? nonl) " at line" (? "s") " "  (+ (seq line (? ", "))) (* nonl) "\n")))
+
+                           (? (* whitespace) (+ "-") ">" (+ nonl) "\n"
+                              (*? (seq (+ whitespace) (+ nonl) "\n"))))))
   :modes raku-mode)
 
 (add-to-list 'flycheck-checkers 'raku)
