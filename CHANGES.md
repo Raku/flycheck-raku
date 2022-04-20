@@ -1,6 +1,16 @@
 flycheck-raku Changes
 ===================
 
+0.7 (2022-04-14)
+----------------
+
+- Detect more and multiple error messages
+
+0.6 (2021-08-14)
+----------------
+
+- Add project root to include path, instead of `lib` directory
+
 0.5 (2021-03-16)
 ----------------
 

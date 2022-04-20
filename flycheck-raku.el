@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2015 Hinrik Örn Sigurðsson <hinrik.sig@gmail.com>
 ;; Copyright (C) 2020 Johnathon Weare <jrweare@gmail.com>
-;; Copyright (C) 2021 Siavash Askari Nasr
+;; Copyright (C) 2021,2022 Siavash Askari Nasr
 
 ;; Author: Hinrik Örn Sigurðsson <hinrik.sig@gmail.com>
 ;;      Johnathon Weare <jrweare@gmail.com>
